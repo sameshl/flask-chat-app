@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
 from flask_sqlalchemy import SQLAlchemy
 
+import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'some_secret_value'
@@ -44,8 +45,10 @@ def private_message(payload):
     message = payload['message']
     
     recipient_session_id = users[username_to_send]
-
-    emit('new_private_message', message, room=recipient_session_id)
+    time_stamp = time.strftime('%b-%d %I:%M%p', time.localtime())
+    
+    data_to_send = {'message': message, 'time_stamp': time_stamp}
+    emit('new_private_message', data_to_send, room=recipient_session_id)
 
 @app.route('/')
 def index():

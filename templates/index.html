@@ -37,8 +37,8 @@ $(document).ready(function() {
 		private_socket.emit('private_message',{'username': recipient, 'message': message_to_send});
 	});
 
-	private_socket.on('new_private_message', function(msg) {
-		alert(msg);
+	private_socket.on('new_private_message', function(data_received) {
+		alert(`${data_received.message} at ${data_received.time_stamp}`);
 	});
 });
 </script>
