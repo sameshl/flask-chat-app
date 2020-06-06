@@ -1,33 +1,37 @@
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
 
-import time
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'some_secret_value'
 socketio = SocketIO(app, cors_allowed_origins='*')
 
-# make a global users dict
-users = {}
+# make a global users dict of user_profile_id vs users_session_id (from flask)
+users_and_session_id = {}
 
-@socketio.on('username', namespace='/private')
-def receive_username(username):
+@socketio.on('user_profile_id', namespace='/private')
+def receive_user_profile_id(user_profile_id):
     # append to global list of all users
-    # users.append({username: request.sid})
-    users[username] = request.sid
-    print("Username added")
-    print(users)
+    # users.append({username_profile_id: request.sid})
+    users_and_session_id[user_profile_id] = request.sid
+    print("User profile id added")
+    print(users_and_session_id)
 
 @socketio.on('private_message', namespace='/private')
 def private_message(payload):
-    username_to_send = payload['username']
+    # the profile id of the user to whom the message should be sent
+    recipient_profile_id = payload['recipient_profile_id']
+    # message to be sent
     message = payload['message']
+    # jwt token of sender
+    jwt_token_of_sender = payload['jwt_token']
     
-    recipient_session_id = users[username_to_send]
-    time_stamp = time.strftime('%b-%d %I:%M%p', time.localtime())
-    
-    data_to_send = {'message': message, 'time_stamp': time_stamp}
-    emit('new_private_message', data_to_send, room=recipient_session_id)
+    recipient_session_id = users_and_session_id.get(recipient_profile_id)
+
+    if recipient_session_id:
+        data_to_send = {'message': message}
+        emit('new_private_message', data_to_send, room=recipient_session_id)
+    else:
+        print("User is offline")
 
 @app.route('/')
 def index():
