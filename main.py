@@ -10,21 +10,32 @@ users_and_session_id = {}
 
 @socketio.on('user_profile_id', namespace='/private')
 def receive_user_profile_id(user_profile_id):
-    # append to global list of all users
-    # users.append({username_profile_id: request.sid})
+    """
+    This function adds the user's profile id to
+    the global user_and_session_id dict. This is the first
+    event to be triggered in the chat app.
+
+    Args:
+        user_profile_id (str): The profile id of the person in the database
+    """
     users_and_session_id[user_profile_id] = request.sid
     print("User profile id added")
     print(users_and_session_id)
 
 @socketio.on('private_message', namespace='/private')
 def private_message(payload):
+    """
+    Sends a private message
+
+    Args:
+        payload (dict): dict of recipient_profile_id, message, jwt_token of user
+    """
     # the profile id of the user to whom the message should be sent
     recipient_profile_id = payload['recipient_profile_id']
     # message to be sent
     message = payload['message']
     # jwt token of sender
     jwt_token_of_sender = payload['jwt_token']
-    
     recipient_session_id = users_and_session_id.get(recipient_profile_id)
 
     if recipient_session_id:
