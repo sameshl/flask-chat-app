@@ -1,14 +1,21 @@
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
+import requests
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'some_secret_value'
-socketio = SocketIO(app, cors_allowed_origins='*')
+app.config["SECRET_KEY"] = "some_secret_value"
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# the url to which we make a POST request so that message gets saved in the database
+ADD_MESSAGE_TO_DB_URL = (
+    "https://www.elixarsystems.com/back/devplatform/store_message/"
+)
 
 # make a global users dict of user_profile_id vs users_session_id (from flask)
 users_and_session_id = {}
 
-@socketio.on('user_profile_id', namespace='/private')
+
+@socketio.on("user_profile_id", namespace="/private")
 def receive_user_profile_id(user_profile_id):
     """
     This function adds the user's profile id to
@@ -22,7 +29,8 @@ def receive_user_profile_id(user_profile_id):
     print("User profile id added")
     print(users_and_session_id)
 
-@socketio.on('private_message', namespace='/private')
+
+@socketio.on("private_message", namespace="/private")
 def private_message(payload):
     """
     Sends a private message
@@ -31,24 +39,53 @@ def private_message(payload):
         payload (dict): dict of recipient_profile_id, message, jwt_token of user
     """
     # the profile id of the user to whom the message should be sent
-    recipient_profile_id = payload['recipient_profile_id']
+    recipient_profile_id = payload["recipient_profile_id"]
     # message to be sent
-    message = payload['message']
+    message = payload["message"]
     # jwt token of sender
-    jwt_token_of_sender = payload['jwt_token']
+    jwt_token_of_sender = payload["jwt_token"]
     recipient_session_id = users_and_session_id.get(recipient_profile_id)
 
     if recipient_session_id:
-        data_to_send = {'message': message}
-        emit('new_private_message', data_to_send, room=recipient_session_id)
+        if add_message_to_db(jwt_token_of_sender, recipient_profile_id, message):
+            data_to_send = {"message": message}
+            emit("new_private_message", data_to_send, room=recipient_session_id)
+        else:
+            print("there was error in adding data to db")
     else:
         print("User is offline")
 
-@app.route('/')
+
+def add_message_to_db(jwt_token_of_sender, recipient_profile_id, message):
+    """
+    Adds the message to the Django database by making a POST request to django backend.
+
+    Args:
+        jwt_token_of_sender (string): JWT token of the sender of message
+        recipient_profile_id (string): The Profile ID of the recipient
+        message (string): The text message that has been sent
+
+    Returns:
+        Boolean: True if the request to Django backend was successful
+        and data got saved. False otherwise
+    """
+    headers = {"Authorization": f"Bearer {jwt_token_of_sender}"}
+    body = {
+        "receiver_profile_id": recipient_profile_id,
+        "content": message,
+        "receiver_online": "true",
+    }
+    r = requests.post(ADD_MESSAGE_TO_DB_URL, headers=headers, data=body)
+    if r.status_code == 200:
+        return True
+    return False
+
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     socketio.run(app, debug=True)
     print("started")
