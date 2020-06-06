@@ -15,12 +15,6 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-* Create the tables in database
-  * Open a python interpreter in the root folder by typing ```python3``` in the terminal
-  * Now in the interpreter, execute the following commands:
-    * ```>>>from main import db```
-    * ```>>>db.create_all()```
-  * Exit the interpreter
 * Start the server
 ```bash
 python main.py
