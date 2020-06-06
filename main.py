@@ -44,6 +44,7 @@ def private_message(payload):
     message = payload["message"]
     # jwt token of sender
     jwt_token_of_sender = payload["jwt_token"]
+    # get the session id of the recipient
     recipient_session_id = users_and_session_id.get(recipient_profile_id)
 
     if recipient_session_id:
@@ -81,8 +82,9 @@ def add_message_to_db(jwt_token_of_sender, recipient_profile_id, message):
     body = {
         "receiver_profile_id": str(recipient_profile_id),
         "content": str(message),
-        "receiver_online": "true",
+        "receiver_online": "true", # true for all requests now as user online / offline feature not implemented yet
     }
+    # verify=False set due to ssl error
     r = requests.post(
         ADD_MESSAGE_TO_DB_URL, headers=headers, json=body, verify=False
     )
