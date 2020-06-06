@@ -47,9 +47,13 @@ def private_message(payload):
     recipient_session_id = users_and_session_id.get(recipient_profile_id)
 
     if recipient_session_id:
-        if add_message_to_db(jwt_token_of_sender, recipient_profile_id, message):
+        if add_message_to_db(
+            jwt_token_of_sender, recipient_profile_id, message
+        ):
             data_to_send = {"message": message}
-            emit("new_private_message", data_to_send, room=recipient_session_id)
+            emit(
+                "new_private_message", data_to_send, room=recipient_session_id
+            )
         else:
             print("there was error in adding data to db")
     else:
@@ -69,13 +73,18 @@ def add_message_to_db(jwt_token_of_sender, recipient_profile_id, message):
         Boolean: True if the request to Django backend was successful
         and data got saved. False otherwise
     """
-    headers = {"Authorization": f"Bearer {jwt_token_of_sender}"}
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {jwt_token_of_sender}",
+    }
     body = {
-        "receiver_profile_id": recipient_profile_id,
-        "content": message,
+        "receiver_profile_id": str(recipient_profile_id),
+        "content": str(message),
         "receiver_online": "true",
     }
-    r = requests.post(ADD_MESSAGE_TO_DB_URL, headers=headers, data=body)
+    r = requests.post(
+        ADD_MESSAGE_TO_DB_URL, headers=headers, json=body, verify=False
+    )
     if r.status_code == 200:
         return True
     return False
