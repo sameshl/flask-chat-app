@@ -9,9 +9,14 @@
 $(document).ready(function() {
 	// create a new namespace for private chat
 	var private_socket = io('http://127.0.0.1:5000/private')
+
+	// private_socket.on('connect', function () {
+	// 	var user_profile_id = "add user id here"
+	// 	private_socket.emit('user_profile_id', user_profile_id);
+	// })
 	
 	$('#send_user_profile_id').on('click', function() {
-		user_profile_id = $('#user_profile_id').val()
+		var user_profile_id = $('#user_profile_id').val()
 		private_socket.emit('user_profile_id', user_profile_id);
 	});
 
