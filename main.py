@@ -54,6 +54,7 @@ def private_message(payload):
             emit(
                 "new_private_message", data_to_send, room=recipient_session_id
             )
+            print("Message sent successfully")
         else:
             print("there was error in adding data to db")
     else:
