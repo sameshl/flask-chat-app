@@ -13,10 +13,10 @@ source venv/bin/activate
 ```
 * Install requirements
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 * Start the server
 ```bash
-python main.py
+python3 main.py
 ```
 * Go to `http://localhost:5000` on your browser.
