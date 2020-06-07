@@ -15,7 +15,7 @@ ADD_MESSAGE_TO_DB_URL = (
 users_and_session_id = {}
 
 
-@socketio.on("user_profile_id", namespace="/private")
+@socketio.on("user_profile_id", namespace="/chat")
 def receive_user_profile_id(user_profile_id):
     """
     This function adds the user's profile id to
@@ -30,14 +30,20 @@ def receive_user_profile_id(user_profile_id):
     print(users_and_session_id)
 
 
-@socketio.on("private_message", namespace="/private")
+@socketio.on("private_message", namespace="/chat")
 def private_message(payload):
+  
     """
     Sends a private message
 
     Args:
         payload (dict): dict of recipient_profile_id, message, jwt_token of user
     """
+    #username_of_reciever = payload["username_of_reciever"]
+    #username_of_sender = payload["username_of_sender"]
+    #print(payload)
+     # the profile id of the sender whom is sending the message
+    sender_profile_id = payload["sender_profile_id"]
     # the profile id of the user to whom the message should be sent
     recipient_profile_id = payload["recipient_profile_id"]
     # message to be sent
@@ -46,20 +52,28 @@ def private_message(payload):
     jwt_token_of_sender = payload["jwt_token"]
     # get the session id of the recipient
     recipient_session_id = users_and_session_id.get(recipient_profile_id)
+    sender_session_id = users_and_session_id.get(sender_profile_id)
 
     if recipient_session_id:
         if add_message_to_db(
             jwt_token_of_sender, recipient_profile_id, message
         ):
-            data_to_send = {"message": message}
+            data_to_send = {"message" : message }
+           # data_to_send_to_sender = {"message" : message , "username" : username_of_reciever }
+           # data_to_send_to_reciever ={"message" : message , "username" : username_of_sender}
             emit(
-                "new_private_message", data_to_send, room=recipient_session_id
+                "new_private_message", data_to_send ,room=recipient_session_id
+            )
+            emit(
+                "new_private_message", data_to_send ,room=sender_session_id 
             )
             print("Message sent successfully")
         else:
             print("there was error in adding data to db")
     else:
         print("User is offline")
+
+
 
 
 def add_message_to_db(jwt_token_of_sender, recipient_profile_id, message):
@@ -99,5 +113,5 @@ def index():
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000)
     print("started")
