@@ -8,7 +8,7 @@
 <script type="text/javascript">
 $(document).ready(function() {
 	// create a new namespace for private chat
-	var private_socket = io('http://127.0.0.1:5000/chat/private')
+	var private_socket = io('http://127.0.0.1:5000/chat')
 
 	// private_socket.on('connect', function () {
 	// 	var user_profile_id = "add user id here"
@@ -22,16 +22,13 @@ $(document).ready(function() {
 
 	$('#send_private_message').on('click', function () {
 		
-		//var username_of_reciever = $('#username_of_reciever_id').val();
-       // var username_of_sender = $('#username_of_sender_id').val();
+        var sender_username = $('#sender_username').val();
 		var sender_profile_id = $('#user_to_send_profile_id').val();
 		var recipient_profile_id = $('#send_to_user_profile_id').val();
 		var message_to_send = $('#private_message').val();
 		var jwt_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNTkyMDQyMzY1LCJqdGkiOiI0NjM2OTQwODFjMzk0OThmYTc4MTU0OTk2ZDY5MDQwZSIsInVzZXJfaWQiOjZ9.T-pBwFWS9pNCD8nSvHWd87Pdo43KJPaP2D32rUXr01c"
 		var payload = {
-            
-			//'username_of_reciever': username_of_reciever,
-            //'username_of_sender': username_of_sender,
+            'sender_username': sender_username,
             'sender_profile_id': sender_profile_id,
 			'recipient_profile_id': recipient_profile_id,
 			'message': message_to_send,
@@ -41,7 +38,7 @@ $(document).ready(function() {
 	});
 
 	private_socket.on('new_private_message', function(data_received) {
-		alert(`${data_received.message}`);
+		alert(`${data_received.message} ${data_received.username}`);
 		
 	});
 });
@@ -55,6 +52,7 @@ $(document).ready(function() {
 
 Send to person's user profile id: <input type="text" id="send_to_user_profile_id">
 sender's id : <input type = "text" id="user_to_send_profile_id" >
+Sender username : <input type = "text" id="sender_username" >
 Message: <input type="text" id="private_message">
 <button id="send_private_message">Send</button>
 </body>

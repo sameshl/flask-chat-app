@@ -32,17 +32,15 @@ def receive_user_profile_id(user_profile_id):
 
 @socketio.on("private_message", namespace="/chat")
 def private_message(payload):
-  
+
     """
     Sends a private message
 
     Args:
         payload (dict): dict of recipient_profile_id, message, jwt_token of user
     """
-    #username_of_reciever = payload["username_of_reciever"]
-    #username_of_sender = payload["username_of_sender"]
-    #print(payload)
-     # the profile id of the sender whom is sending the message
+    # the profile id of the sender whom is sending the message
+    # needed to send message to sender to(using session id)
     sender_profile_id = payload["sender_profile_id"]
     # the profile id of the user to whom the message should be sent
     recipient_profile_id = payload["recipient_profile_id"]
@@ -50,6 +48,7 @@ def private_message(payload):
     message = payload["message"]
     # jwt token of sender
     jwt_token_of_sender = payload["jwt_token"]
+    sender_username = payload["sender_username"]
     # get the session id of the recipient
     recipient_session_id = users_and_session_id.get(recipient_profile_id)
     sender_session_id = users_and_session_id.get(sender_profile_id)
@@ -58,21 +57,18 @@ def private_message(payload):
         if add_message_to_db(
             jwt_token_of_sender, recipient_profile_id, message
         ):
-            data_to_send = {"message" : message }
-           # data_to_send_to_sender = {"message" : message , "username" : username_of_reciever }
-           # data_to_send_to_reciever ={"message" : message , "username" : username_of_sender}
+            data_to_send = {"message": message, "username": sender_username}
+            # data_to_sender = {"message" : message , "username" : sender_username }
+            # data_to_recipient = {"message" : message , "username" : sender_username}
             emit(
-                "new_private_message", data_to_send ,room=recipient_session_id
+                "new_private_message", data_to_send, room=recipient_session_id
             )
-            emit(
-                "new_private_message", data_to_send ,room=sender_session_id 
-            )
+            emit("new_private_message", data_to_send, room=sender_session_id)
             print("Message sent successfully")
         else:
             print("there was error in adding data to db")
     else:
         print("User is offline")
-
 
 
 
@@ -96,7 +92,7 @@ def add_message_to_db(jwt_token_of_sender, recipient_profile_id, message):
     body = {
         "receiver_profile_id": str(recipient_profile_id),
         "content": str(message),
-        "receiver_online": "true", # true for all requests now as user online / offline feature not implemented yet
+        "receiver_online": "true",  # true for all requests now as user online / offline feature not implemented yet
     }
     # verify=False set due to ssl error
     r = requests.post(
@@ -113,5 +109,5 @@ def index():
 
 
 if __name__ == "__main__":
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
     print("started")
