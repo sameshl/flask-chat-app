@@ -85,9 +85,10 @@ def add_message_to_db(jwt_token_of_sender, recipient_profile_id, message):
         Boolean: True if the request to Django backend was successful
         and data got saved. False otherwise
     """
+    auth_token = "Bearer {}".format(jwt_token_of_sender)
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {jwt_token_of_sender}",
+        "Authorization": auth_token,
     }
     body = {
         "receiver_profile_id": str(recipient_profile_id),
